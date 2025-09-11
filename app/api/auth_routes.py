@@ -8,6 +8,37 @@ import app.config.settings as settings
 # 创建认证路由器
 auth_router = APIRouter(prefix="/api/auth", tags=["认证"])
 
+def get_real_client_ip(request: Request) -> str:
+    """
+    获取客户端的真实IP地址
+    优先级：X-Forwarded-For > X-Real-IP > CF-Connecting-IP > Remote-Addr > client.host
+    """
+    # 尝试从 X-Forwarded-For 头获取（可能包含多个IP，取第一个）
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For 可能包含多个IP，格式：client, proxy1, proxy2
+        ip = forwarded_for.split(",")[0].strip()
+        if ip and ip != "unknown":
+            return ip
+    
+    # 尝试从 X-Real-IP 头获取（Nginx等代理常用）
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip and real_ip != "unknown":
+        return real_ip.strip()
+    
+    # 尝试从 CF-Connecting-IP 头获取（Cloudflare专用）
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip and cf_ip != "unknown":
+        return cf_ip.strip()
+    
+    # 尝试从 Remote-Addr 头获取
+    remote_addr = request.headers.get("Remote-Addr")
+    if remote_addr and remote_addr != "unknown":
+        return remote_addr.strip()
+    
+    # 如果都没有，返回直接连接的IP（可能是内网IP）
+    return request.client.host if request.client else "unknown"
+
 # 登录请求模型
 class LoginRequest(BaseModel):
     password: str
@@ -23,8 +54,8 @@ async def login(request: LoginRequest, req: Request):
     用户登录验证接口
     """
     try:
-        # 获取客户端IP
-        client_ip = req.client.host
+        # 获取客户端真实IP
+        client_ip = get_real_client_ip(req)
         
         # 验证密码
         if not request.password:
@@ -51,7 +82,7 @@ async def logout(req: Request):
     用户登出接口
     """
     try:
-        client_ip = req.client.host
+        client_ip = get_real_client_ip(req)
         log("info", f"用户登出 - IP: {client_ip}")
         return JSONResponse(content={"success": True, "message": "登出成功"})
     except Exception as e:
