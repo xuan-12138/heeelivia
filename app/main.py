@@ -17,6 +17,7 @@ from app.utils import (
 )
 from app.config.persistence import save_settings, load_settings
 from app.api import router, init_router, dashboard_router, init_dashboard_router
+from app.api.auth_routes import auth_router
 from app.vertex.vertex_ai_init import init_vertex_ai
 from app.vertex.credentials_manager import CredentialManager
 import app.config.settings as settings
@@ -274,6 +275,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.include_router(router)
 app.include_router(dashboard_router)
+app.include_router(auth_router)
 
 # 挂载静态文件目录
 app.mount("/assets", StaticFiles(directory="app/templates/assets"), name="assets")
@@ -285,11 +287,19 @@ dashboard_path = f"/{settings.DASHBOARD_URL}" if settings.DASHBOARD_URL else "/"
 @app.api_route(dashboard_path, methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def root(request: Request):
     """
-    根路由 - 返回静态 HTML 文件
+    根路由 - 总是返回登录页面
+    """
+    return templates.TemplateResponse(
+        "login.html", {"request": request}
+    )
+
+@app.api_route("/dashboard", methods=["GET"], response_class=HTMLResponse)
+async def dashboard(request: Request):
+    """
+    仪表盘页面 - 验证密码后才能访问
     """
     base_url = str(request.base_url).replace("http", "https")
     api_url = f"{base_url}v1" if base_url.endswith("/") else f"{base_url}/v1"
-    # 直接返回 index.html 文件
     return templates.TemplateResponse(
         "index.html", {"request": request, "api_url": api_url}
     )
