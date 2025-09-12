@@ -629,7 +629,8 @@ async def update_config(config_data: dict):
                     status_code=422, detail="参数类型错误：API密钥应为逗号分隔的字符串"
                 )
 
-            # 分割并清理API密钥
+            # 将换行符替换为逗号，然后分割并清理API密钥
+            config_value = config_value.replace('\n', ',').replace('\r', ',')
             new_keys = [key.strip() for key in config_value.split(",") if key.strip()]
             if not new_keys:
                 raise HTTPException(status_code=400, detail="未提供有效的API密钥")
