@@ -743,6 +743,22 @@ const totalTokens = computed(() => {
       </div>
     </div>
     
+    <!-- Token消耗统计 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ dashboardStore.status.last24hTokens.toLocaleString() }}</div>
+        <div class="stat-label">24小时Token消耗</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ dashboardStore.status.hourlyTokens.toLocaleString() }}</div>
+        <div class="stat-label">小时Token消耗</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ dashboardStore.status.minuteTokens.toLocaleString() }}</div>
+        <div class="stat-label">分钟Token消耗</div>
+      </div>
+    </div>
+    
     <!-- 添加实时API调用图表 -->
     <ApiCallsChart v-if="!apiKeyStatsVisible" />
     
