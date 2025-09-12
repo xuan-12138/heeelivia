@@ -33,19 +33,27 @@ class GeminiResponseWrapper:
         self._prompt_token_count = self._extract_prompt_token_count()
         self._candidates_token_count = self._extract_candidates_token_count()
         self._total_token_count = self._extract_total_token_count()
-        self._thoughts = ""  # 思考过程将由 response.py 统一处理
+        self._thoughts = self._extract_thoughts()
         self._function_call = self._extract_function_call()
         self._json_dumps = json.dumps(self._data, indent=4, ensure_ascii=False)
         self._model = "gemini"
 
+    def _extract_thoughts(self) -> Optional[str]:
+        try:
+            for part in self._data["candidates"][0]["content"]["parts"]:
+                if "thought" in part:
+                    return part["text"]
+            return ""
+        except (KeyError, IndexError):
+            return ""
+
     def _extract_text(self) -> str:
         try:
-            # 返回拼接后的完整文本，包括 thought
-            return "".join(
-                part.get("text", "")
-                for part in self._data["candidates"][0]["content"]["parts"]
-                if "text" in part
-            )
+            text = ""
+            for part in self._data["candidates"][0]["content"]["parts"]:
+                if "thought" not in part and "text" in part:
+                    text += part["text"]
+            return text
         except (KeyError, IndexError):
             return ""
 
@@ -181,8 +189,6 @@ class GeminiClient:
 
             data.setdefault("tools", []).append({"google_search": {}})
             model = request.model.removesuffix("-search")
-        
-        log("DEBUG", f"Gemini Request Data: {json.dumps(data, indent=2, ensure_ascii=False)}")
 
         return api_version, model, data
 
