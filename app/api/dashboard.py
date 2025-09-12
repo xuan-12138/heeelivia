@@ -119,6 +119,11 @@ async def get_dashboard_data():
     last_24h_calls = api_stats_manager.get_calls_last_24h()
     hourly_calls = api_stats_manager.get_calls_last_hour(now)
     minute_calls = api_stats_manager.get_calls_last_minute(now)
+    
+    # 获取Token消耗数据
+    last_24h_tokens = api_stats_manager.get_tokens_last_24h()
+    hourly_tokens = api_stats_manager.get_tokens_last_hour(now)
+    minute_tokens = api_stats_manager.get_tokens_last_minute(now)
 
     # 获取时间序列数据
     time_series_data, tokens_time_series = api_stats_manager.get_time_series_data(
@@ -158,6 +163,9 @@ async def get_dashboard_data():
         "last_24h_calls": last_24h_calls,
         "hourly_calls": hourly_calls,
         "minute_calls": minute_calls,
+        "last_24h_tokens": last_24h_tokens,
+        "hourly_tokens": hourly_tokens,
+        "minute_tokens": minute_tokens,
         "calls_time_series": time_series_data,  # 添加API调用时间序列
         "tokens_time_series": tokens_time_series,  # 添加Token使用时间序列
         "current_time": datetime.now().strftime("%H:%M:%S"),

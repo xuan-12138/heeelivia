@@ -9,7 +9,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     retryCount: 0,
     last24hCalls: 0,
     hourlyCalls: 0,
-    minuteCalls: 0
+    minuteCalls: 0,
+    // Token消耗统计
+    last24hTokens: 0,
+    hourlyTokens: 0,
+    minuteTokens: 0
   })
 
   // 添加图表相关的时间序列数据
@@ -95,6 +99,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
       last24hCalls: data.last_24h_calls || 0,
       hourlyCalls: data.hourly_calls || 0,
       minuteCalls: data.minute_calls || 0,
+      // Token消耗统计
+      last24hTokens: data.last_24h_tokens || 0,
+      hourlyTokens: data.hourly_tokens || 0,
+      minuteTokens: data.minute_tokens || 0,
       enableVertex: data.enable_vertex || false
     }
 
