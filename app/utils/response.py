@@ -1,5 +1,6 @@
 import json
 import time
+import re
 
 
 def openAI_from_text(
@@ -56,6 +57,9 @@ def gemini_from_text(
 
 
 def openAI_from_Gemini(response, stream=True):
+    from app.utils.logging import log
+    log("DEBUG", f"openAI_from_Gemini received response.text: {response.text}")
+    log("DEBUG", f"openAI_from_Gemini received response.thoughts: {response.thoughts}")
     """
     根据 GeminiResponseWrapper 对象创建 OpenAI 标准响应对象块。
 
@@ -112,23 +116,15 @@ def openAI_from_Gemini(response, stream=True):
             "tool_calls": tool_calls,
         }
     elif response.text:
-        import re
         # 处理普通文本响应
         text = response.text
-        # 确保 thoughts 属性存在且不为 None
-        thoughts = response.thoughts if hasattr(response, 'thoughts') and response.thoughts else ""
+        
+        # 从完整的 response.text 中提取所有思考过程
+        thoughts_list = re.findall(r"<thought>(.*?)</thought>", text, re.DOTALL)
+        thoughts = "\n".join(thought.strip() for thought in thoughts_list)
 
-        # 检查并从 text 中提取 <thought> 标签内容
-        match = re.search(r"<thought>(.*?)</thought>", text, re.DOTALL)
-        if match:
-            extracted_thought = match.group(1).strip()
-            # 如果已经有结构化的 thought，就拼接
-            if thoughts:
-                thoughts = f"{thoughts}\n{extracted_thought}"
-            else:
-                thoughts = extracted_thought
-            # 从主文本中移除 thought 标签
-            text = re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
+        # 从主文本中移除所有 thought 标签及其内容
+        text = re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
 
         content_chunk = {"role": "assistant", "content": text}
         if thoughts:
