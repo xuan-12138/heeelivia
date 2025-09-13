@@ -247,8 +247,8 @@ async def startup_event():
         credential_manager_instance,
     )
 
-    # 启动浏览器
-    open_browser()
+    # 创建异步任务，在后台延迟打开浏览器
+    asyncio.create_task(open_browser_delayed())
 
 
 # --------------- 异常处理 ---------------
@@ -335,3 +335,13 @@ def open_browser():
     except Exception as e:
         # 捕获其他可能的异常
         log("error", f"尝试打开浏览器时发生未知错误: {e}")
+
+
+async def open_browser_delayed():
+    """
+    在后台异步延迟打开浏览器，避免阻塞服务器启动。
+    延迟3秒后打开浏览器，确保服务器已经完全准备好。
+    """
+    log("info", "将在3秒后自动打开浏览器...")
+    await asyncio.sleep(3)  # 异步等待3秒
+    open_browser()

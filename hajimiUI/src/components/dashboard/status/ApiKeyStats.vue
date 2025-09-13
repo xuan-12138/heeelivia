@@ -89,8 +89,8 @@ async function submitApiKeys() {
     return
   }
   
-  // 验证API密钥格式
-  const keys = newApiKeys.value.split(',').map(key => key.trim()).filter(key => key)
+  // 验证API密钥格式 - 支持换行和逗号分隔
+  const keys = newApiKeys.value.split(/[,\n\r]+/).map(key => key.trim()).filter(key => key)
   if (keys.length === 0) {
     apiKeyError.value = '请输入至少一个有效的API密钥'
     return

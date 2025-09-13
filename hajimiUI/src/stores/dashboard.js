@@ -154,16 +154,23 @@ export const useDashboardStore = defineStore('dashboard', () => {
         }, {})
       }))
       
-      // 提取所有可用的模型
-      const models = new Set(['all']) // 始终包含"全部"选项
-      data.api_key_stats.forEach(stat => {
-        if (stat.model_stats) {
-          Object.keys(stat.model_stats).forEach(model => {
-            models.add(model)
+      // 从后端API直接获取可用模型列表
+      if (data.available_models && Array.isArray(data.available_models)) {
+        availableModels.value = data.available_models
+      } else {
+        // 如果后端没有提供模型列表，从model_stats提取（向后兼容）
+        const models = new Set(['all'])
+        if (data.api_key_stats && data.api_key_stats.length > 0) {
+          data.api_key_stats.forEach(stat => {
+            if (stat.model_stats) {
+              Object.keys(stat.model_stats).forEach(model => {
+                models.add(model)
+              })
+            }
           })
         }
-      })
-      availableModels.value = Array.from(models)
+        availableModels.value = Array.from(models)
+      }
       
       // 如果当前选择的模型不在可用模型列表中，重置为"all"
       if (!availableModels.value.includes(selectedModel.value)) {
