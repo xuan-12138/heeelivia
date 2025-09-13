@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -280,6 +280,31 @@ app.include_router(auth_router)
 # 挂载静态文件目录
 app.mount("/assets", StaticFiles(directory="app/templates/assets"), name="assets")
 
+# 添加一个内部路由用于显示仪表盘内容（密码验证后使用）
+@app.api_route("/dashboard-authenticated", methods=["POST"], response_class=HTMLResponse)
+async def dashboard_authenticated(request: Request):
+    """
+    经过验证的仪表盘页面 - 只在密码验证成功后通过POST访问
+    """
+    # 获取请求体
+    try:
+        body = await request.json()
+        password = body.get("password")
+        
+        # 验证密码
+        if password != settings.PASSWORD:
+            return RedirectResponse(url="/", status_code=302)
+            
+        # 密码正确，返回仪表盘页面
+        base_url = str(request.base_url).replace("http", "https")
+        api_url = f"{base_url}v1" if base_url.endswith("/") else f"{base_url}/v1"
+        return templates.TemplateResponse(
+            "index.html", {"request": request, "api_url": api_url}
+        )
+    except:
+        # 任何错误都重定向到登录页面
+        return RedirectResponse(url="/", status_code=302)
+
 # 设置根路由路径
 dashboard_path = f"/{settings.DASHBOARD_URL}" if settings.DASHBOARD_URL else "/"
 
@@ -293,16 +318,12 @@ async def root(request: Request):
         "login.html", {"request": request}
     )
 
-@app.api_route("/dashboard", methods=["GET"], response_class=HTMLResponse)
+@app.api_route("/dashboard", methods=["GET"])
 async def dashboard(request: Request):
     """
-    仪表盘页面 - 验证密码后才能访问
+    仪表盘页面 - 始终重定向到登录页面，防止直接访问
     """
-    base_url = str(request.base_url).replace("http", "https")
-    api_url = f"{base_url}v1" if base_url.endswith("/") else f"{base_url}/v1"
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "api_url": api_url}
-    )
+    return RedirectResponse(url="/", status_code=302)
 
 
 # --------------- 自动启动浏览器 ---------------

@@ -4,28 +4,8 @@ import LoginView from '../views/LoginView.vue'
 
 // 检查用户是否已认证
 function isAuthenticated() {
-  const authStatus = localStorage.getItem('hajimi_authenticated')
-  const authTime = localStorage.getItem('hajimi_auth_time')
-  
-  if (!authStatus || authStatus !== 'true') {
-    return false
-  }
-  
-  // 检查认证是否过期（24小时）
-  if (authTime) {
-    const now = new Date().getTime()
-    const authTimeStamp = parseInt(authTime)
-    const hoursPassed = (now - authTimeStamp) / (1000 * 60 * 60)
-    
-    if (hoursPassed > 24) {
-      // 认证过期，清除状态
-      localStorage.removeItem('hajimi_authenticated')
-      localStorage.removeItem('hajimi_auth_time')
-      return false
-    }
-  }
-  
-  return true
+  // 每次刷新都需要重新登录，所以始终返回false
+  return false
 }
 
 const router = createRouter({
@@ -52,17 +32,12 @@ const router = createRouter({
 
 // 全局路由守卫
 router.beforeEach((to, from, next) => {
-  // 如果路由需要认证
+  // 如果路由需要认证（仪表盘）
   if (to.meta.requiresAuth) {
-    if (isAuthenticated()) {
-      next() // 已认证，继续
-    } else {
-      next('/login') // 未认证，跳转到登录页
-    }
-  } else if (to.path === '/login' && isAuthenticated()) {
-    next('/') // 已认证用户访问登录页，跳转到首页
+    // 每次刷新都需要重新登录，始终跳转到登录页
+    next('/login')
   } else {
-    next() // 不需要认证或访问登录页
+    next() // 访问登录页或其他不需要认证的页面
   }
 })
 
