@@ -111,9 +111,10 @@ def openAI_from_Gemini(response, stream=True):
             "content": None,  # 函数调用时 content 为 null
             "tool_calls": tool_calls,
         }
-    elif response.text:
-        import re
+    elif response.text or response.thoughts:
         content_chunk = {"role": "assistant", "content": response.text}
+        if response.thoughts:
+            content_chunk["reasoning_content"] = response.thoughts
     
     if stream:
         formatted_chunk["choices"][0]["delta"] = content_chunk
