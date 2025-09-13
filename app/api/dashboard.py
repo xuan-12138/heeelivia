@@ -158,6 +158,7 @@ async def get_dashboard_data():
     return {
         "key_count": len(key_manager.api_keys),
         "model_count": len(GeminiClient.AVAILABLE_MODELS),
+        "available_models": GeminiClient.AVAILABLE_MODELS,  # 添加可用模型列表
         "retry_count": settings.MAX_RETRY_NUM,
         "credentials_count": credentials_count,  # 添加凭证数量
         "last_24h_calls": last_24h_calls,
