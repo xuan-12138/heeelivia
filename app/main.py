@@ -340,8 +340,8 @@ def open_browser():
 async def open_browser_delayed():
     """
     在后台异步延迟打开浏览器，避免阻塞服务器启动。
-    延迟5秒后打开浏览器，确保服务器已经完全准备好。
+    延迟3秒后打开浏览器，确保服务器已经完全准备好。
     """
-    log("info", "将在5秒后自动打开浏览器...")
-    await asyncio.sleep(5)  # 异步等待5秒
+    log("info", "将在3秒后自动打开浏览器...")
+    await asyncio.sleep(3)  # 异步等待3秒
     open_browser()
