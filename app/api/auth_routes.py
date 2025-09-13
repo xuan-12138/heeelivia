@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+import pathlib
 from pydantic import BaseModel
 from app.utils.auth import verify_web_password
 from app.utils.logging import log
@@ -7,6 +9,10 @@ import app.config.settings as settings
 
 # 创建认证路由器
 auth_router = APIRouter(prefix="/api/auth", tags=["认证"])
+
+# 设置模板目录
+BASE_DIR = pathlib.Path(__file__).parent.parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 def get_real_client_ip(request: Request) -> str:
     """
@@ -65,7 +71,8 @@ async def login(request: LoginRequest, req: Request):
         # 使用PASSWORD进行验证
         if request.password == settings.PASSWORD:
             log("info", f"用户登录成功 - IP: {client_ip}")
-            return JSONResponse(content={"success": True, "message": "登录成功", "redirect": "/dashboard"})
+            # 直接返回成功状态，让前端处理跳转
+            return JSONResponse(content={"success": True, "message": "登录成功", "authenticated": True})
         else:
             log("warning", f"登录失败：密码错误 - IP: {client_ip}")
             raise HTTPException(status_code=401, detail="密码错误")
@@ -98,3 +105,18 @@ async def get_auth_status():
         "password_required": bool(settings.PASSWORD),
         "web_password_set": bool(settings.WEB_PASSWORD and settings.WEB_PASSWORD != settings.PASSWORD)
     })
+
+@auth_router.get("/dashboard-content", response_class=HTMLResponse)
+async def get_dashboard_content(req: Request, password: str = None):
+    """
+    获取仪表盘内容的受保护路由
+    只在密码验证成功后内部调用
+    """
+    # 构建API URL
+    base_url = str(req.base_url).replace("http", "https")
+    api_url = f"{base_url}v1" if base_url.endswith("/") else f"{base_url}/v1"
+    
+    # 返回仪表盘HTML内容
+    return templates.TemplateResponse(
+        "index.html", {"request": req, "api_url": api_url}
+    )
