@@ -105,18 +105,3 @@ async def get_auth_status():
         "password_required": bool(settings.PASSWORD),
         "web_password_set": bool(settings.WEB_PASSWORD and settings.WEB_PASSWORD != settings.PASSWORD)
     })
-
-@auth_router.get("/dashboard-content", response_class=HTMLResponse)
-async def get_dashboard_content(req: Request, password: str = None):
-    """
-    获取仪表盘内容的受保护路由
-    只在密码验证成功后内部调用
-    """
-    # 构建API URL
-    base_url = str(req.base_url).replace("http", "https")
-    api_url = f"{base_url}v1" if base_url.endswith("/") else f"{base_url}/v1"
-    
-    # 返回仪表盘HTML内容
-    return templates.TemplateResponse(
-        "index.html", {"request": req, "api_url": api_url}
-    )
