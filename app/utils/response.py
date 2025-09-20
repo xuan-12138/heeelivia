@@ -3,7 +3,12 @@ import time
 
 
 def openAI_from_text(
-    model="gemini", content=None, finish_reason=None, total_token_count=0, stream=True
+    model="gemini",
+    content=None,
+    finish_reason=None,
+    total_token_count=0,
+    stream=True,
+    role="assistant",
 ):
     """
     根据传入参数，创建 OpenAI 标准响应对象块
@@ -19,7 +24,7 @@ def openAI_from_text(
     }
 
     if content:
-        content_chunk = {"role": "assistant", "content": content}
+        content_chunk = {"role": role, "content": content}
 
     if finish_reason:
         formatted_chunk["usage"] = {"total_tokens": total_token_count}
