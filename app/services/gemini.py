@@ -213,11 +213,12 @@ class GeminiClient:
             "candidateCount": request.n,
         }
         thinking_config = {}
-        if request.thinking_budget is not None:
-            thinking_config["thinkingBudget"] = request.thinking_budget
-        
-        if hasattr(request, "enable_thinking"):
-            thinking_config["include_thoughts"] = request.enable_thinking
+        if settings.ENABLE_THINKING:
+            if request.thinking_budget is not None:
+                thinking_config["thinkingBudget"] = request.thinking_budget
+            
+            if getattr(request, "enable_thinking", False):
+                thinking_config["include_thoughts"] = True
 
         if thinking_config:
             config_params["thinkingConfig"] = thinking_config
@@ -311,6 +312,7 @@ class GeminiClient:
         api_version, model, data = self._convert_request_data(
             request, contents, safety_settings, system_instruction
         )
+        #log("INFO", f"Request body to Google: {json.dumps(data, ensure_ascii=False)}")
 
         url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model}:streamGenerateContent?key={self.api_key}&alt=sse"
         headers = {
@@ -365,6 +367,7 @@ class GeminiClient:
         api_version, model, data = self._convert_request_data(
             request, contents, safety_settings, system_instruction
         )
+        log("INFO", f"Request body to Google: {json.dumps(data, ensure_ascii=False)}")
 
         url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent?key={self.api_key}"
         headers = {
