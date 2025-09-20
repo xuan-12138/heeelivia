@@ -234,6 +234,7 @@ async def stream_response_generator(
                         content="空响应次数达到上限\n请修改输入提示词",
                         finish_reason="stop",
                         stream=True,
+                        role="error",
                     )
 
                 return
@@ -408,6 +409,7 @@ async def stream_response_generator(
                         content="空响应次数达到上限\n请修改输入提示词",
                         finish_reason="stop",
                         stream=True,
+                        role="error",
                     )
 
                 return

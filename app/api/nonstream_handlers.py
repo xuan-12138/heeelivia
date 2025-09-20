@@ -464,6 +464,7 @@ async def process_request(
                     content="空响应次数达到上限\n请修改输入提示词",
                     finish_reason="stop",
                     stream=False,
+                    role="error",
                 )
 
     # 如果所有尝试都失败
@@ -732,6 +733,7 @@ async def process_nonstream_with_keepalive_stream(
                             content="空响应次数达到上限\n请修改输入提示词",
                             finish_reason="stop",
                             stream=False,
+                            role="error",
                         )
 
                     yield json.dumps(error_response, ensure_ascii=False)
@@ -756,6 +758,7 @@ async def process_nonstream_with_keepalive_stream(
                     content="所有API密钥均请求失败\n具体错误请查看轮询日志",
                     finish_reason="stop",
                     stream=False,
+                    role="error",
                 )
 
             yield json.dumps(error_response, ensure_ascii=False)
