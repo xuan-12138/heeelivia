@@ -214,8 +214,6 @@ async def get_dashboard_data():
         "max_retry_num": settings.MAX_RETRY_NUM,
         # 添加空响应重试次数限制
         "max_empty_responses": settings.MAX_EMPTY_RESPONSES,
-        # 添加API密钥空回时是否替换文本信息配置
-        "show_api_error_message": settings.SHOW_API_ERROR_MESSAGE,
     }
 
 
@@ -693,12 +691,6 @@ async def update_config(config_data: dict):
                 log("info", f"空响应重试次数已更新为：{value}")
             except ValueError as e:
                 raise HTTPException(status_code=422, detail=f"参数类型错误：{str(e)}")
-
-        elif config_key == "show_api_error_message":
-            if not isinstance(config_value, bool):
-                raise HTTPException(status_code=422, detail="参数类型错误：应为布尔值")
-            settings.SHOW_API_ERROR_MESSAGE = config_value
-            log("info", f"API错误消息显示已更新为：{config_value}")
 
         else:
             raise HTTPException(status_code=400, detail=f"不支持的配置项：{config_key}")
