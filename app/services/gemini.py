@@ -367,7 +367,7 @@ class GeminiClient:
         api_version, model, data = self._convert_request_data(
             request, contents, safety_settings, system_instruction
         )
-        log("INFO", f"Request body to Google: {json.dumps(data, ensure_ascii=False)}")
+        #log("INFO", f"Request body to Google: {json.dumps(data, ensure_ascii=False)}")
 
         url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent?key={self.api_key}"
         headers = {
