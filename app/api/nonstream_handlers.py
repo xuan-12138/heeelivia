@@ -428,8 +428,56 @@ async def process_request(
                 except Exception as e:
                     handle_gemini_error(e, api_key)
 
-                # 更新任务列表，移除已完成的任务
-                tasks = [(k, t) for k, t in tasks if not t.done()]
+                      # ↓↓↓ 在这里添加重试逻辑 ↓↓↓
+        # 检查是否达到最大重试次数（可以自定义重试次数限制）
+        retry_count = getattr(task, 'retry_count', 0)
+        if retry_count < 3:  # 最多重试3次
+            log("warning", f"任务失败，准备重试 ({retry_count + 1}/3): {str(e)}")
+            
+            # 重新创建任务
+            if settings.NONSTREAM_KEEPALIVE_ENABLED:
+                new_task = asyncio.create_task(
+                    process_nonstream_request_with_simple_keepalive(
+                        chat_request,
+                        contents,
+                        system_instruction,
+                        api_key,
+                        response_cache_manager,
+                        safety_settings,
+                        safety_settings_g2,
+                        cache_key,
+                        settings.NONSTREAM_KEEPALIVE_INTERVAL,
+                    )
+                )
+            else:
+                new_task = asyncio.create_task(
+                    process_nonstream_request(
+                        chat_request,
+                        contents,
+                        system_instruction,
+                        api_key,
+                        response_cache_manager,
+                        safety_settings,
+                        safety_settings_g2,
+                        cache_key,
+                    )
+                )
+            
+            # 记录重试次数
+            new_task.retry_count = retry_count + 1
+            
+            # 把失败的任务重新加回待办列表
+            tasks.append((api_key, new_task))
+            tasks_map[new_task] = api_key
+            
+            # 添加一个小延时避免立即重试
+            await asyncio.sleep(1.0)
+        else:
+            log("error", f"任务重试次数已达上限，放弃重试: {str(e)}")
+        # ↑↑↑ 重试逻辑结束 ↑↑↑
+
+    # 更新任务列表，移除已完成的任务
+    tasks = [(k, t) for k, t in tasks if not t.done()]
 
         # 如果当前批次没有成功响应，并且还有密钥可用，则继续尝试
         if not success and valid_keys:
@@ -691,8 +739,56 @@ async def process_nonstream_with_keepalive_stream(
                         except Exception as e:
                             handle_gemini_error(e, api_key)
 
-                        # 更新任务列表，移除已完成的任务
-                        tasks = [(k, t) for k, t in tasks if not t.done()]
+                              # ↓↓↓ 在这里添加重试逻辑 ↓↓↓
+        # 检查是否达到最大重试次数（可以自定义重试次数限制）
+        retry_count = getattr(task, 'retry_count', 0)
+        if retry_count < 3:  # 最多重试3次
+            log("warning", f"任务失败，准备重试 ({retry_count + 1}/3): {str(e)}")
+            
+            # 重新创建任务
+            if settings.NONSTREAM_KEEPALIVE_ENABLED:
+                new_task = asyncio.create_task(
+                    process_nonstream_request_with_simple_keepalive(
+                        chat_request,
+                        contents,
+                        system_instruction,
+                        api_key,
+                        response_cache_manager,
+                        safety_settings,
+                        safety_settings_g2,
+                        cache_key,
+                        settings.NONSTREAM_KEEPALIVE_INTERVAL,
+                    )
+                )
+            else:
+                new_task = asyncio.create_task(
+                    process_nonstream_request(
+                        chat_request,
+                        contents,
+                        system_instruction,
+                        api_key,
+                        response_cache_manager,
+                        safety_settings,
+                        safety_settings_g2,
+                        cache_key,
+                    )
+                )
+            
+            # 记录重试次数
+            new_task.retry_count = retry_count + 1
+            
+            # 把失败的任务重新加回待办列表
+            tasks.append((api_key, new_task))
+            tasks_map[new_task] = api_key
+            
+            # 添加一个小延时避免立即重试
+            await asyncio.sleep(1.0)
+        else:
+            log("error", f"任务重试次数已达上限，放弃重试: {str(e)}")
+        # ↑↑↑ 重试逻辑结束 ↑↑↑
+
+    # 更新任务列表，移除已完成的任务
+    tasks = [(k, t) for k, t in tasks if not t.done()]
 
                 # 如果当前批次没有成功响应，并且还有密钥可用，则继续尝试
                 if not success and valid_keys:
