@@ -790,6 +790,11 @@ async def process_nonstream_with_keepalive_stream(
     # 更新任务列表，移除已完成的任务
     tasks = [(k, t) for k, t in tasks if not t.done()]
 
+    # ↓↓↓ 在这里添加循环延时 ↓↓↓
+    if tasks:  # 如果还有任务在执行，稍微等待一下
+        await asyncio.sleep(0.5)
+    # ↑↑↑ 循环延时结束 ↑↑↑
+
                 # 如果当前批次没有成功响应，并且还有密钥可用，则继续尝试
                 if not success and valid_keys:
                     # 增加并发数，但不超过最大并发数
