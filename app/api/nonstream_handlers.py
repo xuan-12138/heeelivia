@@ -480,9 +480,9 @@ async def process_request(
     tasks = [(k, t) for k, t in tasks if not t.done()]
 
         # 如果当前批次没有成功响应，并且还有密钥可用，则继续尝试
-        if not success and valid_keys:
+           if not success and valid_keys:
         # 增加并发数，但不超过最大并发数
-        current_concurrent = min(
+                current_concurrent = min(
                 current_concurrent + settings.INCREASE_CONCURRENT_ON_FAILURE,
                 settings.MAX_CONCURRENT_REQUESTS,
             )
